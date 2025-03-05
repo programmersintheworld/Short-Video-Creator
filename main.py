@@ -315,6 +315,11 @@ class VideoCreation:
 
             if full_start is None:
                 full_start = start
+                
+            if full_start >= end:
+                raise ValueError(f"Tiempos de subclip inválidos: {full_start} >= {end}")
+            if end > self.clip.duration:
+                end = self.clip.duration  # Ajusta para evitar fuera de rango
 
             # Skip if the caption exceeds the clip duration
             if full_start > clip.duration or end > clip.duration:
@@ -427,7 +432,7 @@ def start_process(file_name, processes_status_dict, video_queue: multiprocessing
                 output_dir,
                 codec="libx264",
                 audio_codec="aac",
-                fps=output_video.fps,
+                fps=int(output_video.fps),
                 threads=NUM_THREADS,
                 verbose=False,
                 logger=None
@@ -473,9 +478,7 @@ def check_command(command):
     except Exception as e:
         return str(e)
 
-def clone_respository():
-    
-    
+def clone_repository():
     # Check for Git
     git_version = check_command(['git', '--version'])
     if not git_version:
@@ -492,7 +495,6 @@ def clone_respository():
     # Run the git clone command
     subprocess.run(['git', 'clone', repo_url], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
     logging.info(f"Cloned {repo_url}")
-    
 
 
 if __name__ == '__main__':
@@ -502,7 +504,7 @@ if __name__ == '__main__':
     if not os.path.exists(MODEL_NAME):
         logging.warning(f'Model {MODEL_NAME} not found.')
         logging.info('Downloading model...')
-        clone_respository()
+        clone_repository()
         
     # Create a manager for shared data between processes
     manager = multiprocessing.Manager()
@@ -515,6 +517,8 @@ if __name__ == '__main__':
 
     # List all video files in the input directory
     input_video_names = os.listdir(INPUT_VIDEOS_DIR)
+    print(input_video_names)
+    # Añadir condicional para decir al usuario que no hay videos en la carpeta de input
 
     # Add video file names to the queue
     for name in input_video_names:

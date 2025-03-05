@@ -296,7 +296,9 @@ class VideoClip(Clip):
                                        write_logfile=write_logfile,
                                        verbose=verbose,
                                        logger=logger)
-
+        if fps is None:
+          fps = 30
+          
         ffmpeg_write_video(self, filename, fps, codec,
                            bitrate=bitrate,
                            preset=preset,

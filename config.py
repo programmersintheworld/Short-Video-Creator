@@ -1,6 +1,6 @@
 ## Model settings
 MODEL_NAME = 'whisper-small.en'
-LANGUAGE = 'en'
+LANGUAGE = 'es'
 
 ## Processing settings
 MAX_NUMBER_OF_PROCESSES = 1 # The maximum number of videos which can be processed simultaneously
@@ -17,7 +17,7 @@ PERCENT_MAIN_CLIP = 40 # Percentage of output video height which is the main vid
 TEXT_POSITION_PERCENT = 30 # Position of caption text as a percentage of video height (from top of video)
 
 ## Source folders
-INPUT_VIDEOS_DIR = 'INPUT_VIDEOS' # Directory of the input videos
-OUTPUT_VIDEOS_DIR = 'OUTPUT_VIDEOS' # Directory the editted videos will be saved
+INPUT_VIDEOS_DIR = 'input_videos' # Directory of the input videos
+OUTPUT_VIDEOS_DIR = 'output_videos' # Directory the editted videos will be saved
 BACKGROUND_VIDEOS_DIR = 'BACKGROUND_VIDEOS' # Directory of the background videos
 FONTS_DIR = 'FONTS' # Directory the fonts are stored in

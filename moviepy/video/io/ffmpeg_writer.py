@@ -68,6 +68,9 @@ class FFMPEG_VideoWriter:
     def __init__(self, filename, size, fps, codec="libx264", audiofile=None,
                  preset="medium", bitrate=None, withmask=False,
                  logfile=None, threads=None, ffmpeg_params=None):
+        
+        if (fps is None) or (fps == 0):
+            fps = 30 # default value if none is provided
 
         if logfile is None:
             logfile = sp.PIPE
@@ -85,7 +88,7 @@ class FFMPEG_VideoWriter:
             '-vcodec', 'rawvideo',
             '-s', '%dx%d' % (size[0], size[1]),
             '-pix_fmt', 'rgba' if withmask else 'rgb24',
-            '-r', '%.02f' % fps,
+            '-r', '%.02f' % int(fps),
             '-an', '-i', '-'
         ]
         if audiofile is not None:

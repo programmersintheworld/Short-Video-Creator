@@ -1,0 +1,17 @@
+/temp
+/output_videos
+/__pycache__
+/moviepy/__pycache__
+/moviepy/video/__pycache__
+/moviepy/video/io/__pycache__
+/moviepy/video/fx/__pycache__
+/moviepy/video/fx/all/__pycache__
+/moviepy/video/compositing/__pycache__
+/moviepy/video/tools/__pycache__
+/moviepy/audio/__pycache__
+/moviepy/audio/fx/__pycache__
+/moviepy/audio/fx/audio/__pycache__
+/moviepy/audio/fx/all/__pycache__
+/moviepy/audio/io/__pycache__
+/venv
+/whisper-small.en
