@@ -223,9 +223,8 @@ class VideoCreation:
 
     def create_final_clip(self):
     # Simplemente devuelve el clip original sin fondo
-        print("Creating final clip...")
         return self.clip
-
+        
     def create_transcription(self, audio):
         # Generate transcription from the audio
         os.makedirs("temp", exist_ok=True)  # Create a temporary directory for audio files
@@ -244,7 +243,7 @@ class VideoCreation:
         logging.info("Transcribing audio...")
         result = whisper.transcribe(model, loaded_audio, language=LANGUAGE, verbose=None)
         logging.info("Transcription complete.")
-
+        
         # Clean up the temporary audio file
         try:
             os.remove(file_dir)
@@ -260,7 +259,7 @@ class VideoCreation:
                     'timestamp': (word['start'], word['end']),
                     'text': word['text']
                 })
-
+                
         return timestamps  # Return the list of timestamps and words
 
     def add_captions_to_video(self, clip, timestamps):
