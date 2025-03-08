@@ -263,28 +263,33 @@ class VideoCreation:
         return timestamps  # Return the list of timestamps and words
 
     def add_captions_to_video(self, clip, timestamps):
-        # Add captions to the video based on the provided timestamps
-        if len(timestamps) == 0:
-            return clip  # Return the original clip if no timestamps
-
-        clips = []  # List to hold video clips with captions
-        previous_time = 0  # Track the end time of the previous caption
-
-        queued_texts = []  # List to hold texts for the current caption
-        full_start = None  # Start time for the current caption
-
-        end = 0  # End time for the current caption
-
-        # Iterate through the timestamps to create captions
+        """
+        Añade subtítulos al video superponiendo texto en momentos específicos
+        sin modificar la estructura del video original.
+        
+        Args:
+            clip: El clip de video original
+            timestamps: Lista de diccionarios con 'timestamp' (inicio, fin) y 'text'
+        
+        Returns:
+            Un clip de video con subtítulos superpuestos
+        """
+        if not timestamps:
+            return clip  # Devolver clip original si no hay timestamps
+        
+        # Lista para almacenar todos los clips de texto (subtítulos)
+        text_clips = []
+        
+        # Procesar los timestamps para combinar palabras cercanas
+        processed_timestamps = []
+        queued_texts = []
+        full_start = None
+        
         for pos, timestamp in enumerate(timestamps):
             start, end = timestamp["timestamp"]
             text = timestamp["text"]
-
-            # If there is a gap before the current caption, add the previous clip
-            if start > previous_time and len(queued_texts) == 0:
-                clips.append(clip.subclip(previous_time, start))
-
-            # Adjust the end time if there is a next timestamp
+            
+            # Ajustar el tiempo de finalización si hay un siguiente timestamp
             if pos + 1 < len(timestamps):
                 next_timestamp_start = timestamps[pos + 1]['timestamp'][0]
                 if next_timestamp_start > end:
@@ -292,53 +297,72 @@ class VideoCreation:
                         end += 0.5
                     else:
                         end = next_timestamp_start
-
-            # If the gap between captions is small, queue the text
-            if end - previous_time < 0.3 and pos + 1 < len(timestamps):
+            
+            # Si la diferencia es pequeña, acumular el texto
+            if pos > 0 and end - timestamps[pos-1]['timestamp'][1] < 0.3:
                 if full_start is None:
                     full_start = start
                 queued_texts.append(text)
                 continue
-
-            queued_texts.append(text)  # Add the current text to the queue
-
-            # Combine queued texts into a single caption
-            if len(queued_texts) > 0:
-                text = " ".join(queued_texts)
+            
+            # Añadir texto acumulado
+            if queued_texts:
+                text = " ".join(queued_texts) + " " + text
                 queued_texts = []
-
-            if full_start is None:
-                full_start = start
-                
-            if full_start >= end:
-                raise ValueError(f"Tiempos de subclip inválidos: {full_start} >= {end}")
-            if end > self.clip.duration:
-                end = self.clip.duration  # Ajusta para evitar fuera de rango
-
-            # Skip if the caption exceeds the clip duration
-            if full_start > clip.duration or end > clip.duration:
-                continue
-
-            # Add the captioned clip to the list
-            clips.append(
-                self.add_text_to_video(
-                    clip.subclip(full_start, end),
-                    text
-                )
+                if full_start is not None:
+                    start = full_start
+                    full_start = None
+            
+            # Asegurarse de que los tiempos estén dentro de los límites del video
+            start = max(0, start)
+            end = min(clip.duration, end)
+            
+            if start >= end or start >= clip.duration:
+                continue  # Saltar rangos de tiempo inválidos
+            
+            processed_timestamps.append({
+                'timestamp': (start, end),
+                'text': text
+            })
+        
+        # Añadir cualquier texto restante en la cola
+        if queued_texts and full_start is not None:
+            text = " ".join(queued_texts)
+            start = full_start
+            processed_timestamps.append({
+                'timestamp': (start, min(clip.duration, end)),
+                'text': text
+            })
+        
+        # Crear clips de texto para cada timestamp procesado
+        for timestamp in processed_timestamps:
+            start, end = timestamp['timestamp']
+            text = timestamp['text']
+            
+            # Crear imagen de texto con el método existente
+            text_image = self.create_text_image(
+                text,
+                os.path.join(FONTS_DIR, FONT_NAME),
+                FONT_SIZE,
+                clip.size[0]
             )
-
-            previous_time = end  # Update the previous time
-            full_start = None  # Reset full start for the next caption
-
-        # Add any remaining clip after the last caption
-        if clip.duration - end > 0.01:
-            clips.append(
-                clip.subclip(end, clip.duration)
-            )
-
-        clip = concatenate_videoclips(clips)  # Concatenate all clips with captions
-
-        return clip  # Return the final clip with captions
+            
+            # Convertir la imagen a un clip y configurar sus propiedades
+            txt_clip = (ImageClip(np.array(text_image))
+                    .set_start(start)
+                    .set_duration(end - start))
+            
+            # Calcular posición Y (usando la misma lógica que en add_text_to_video)
+            y_offset = round(FULL_RESOLUTION[1] * 0.85)
+            txt_clip = txt_clip.set_position(("center", y_offset))
+            
+            text_clips.append(txt_clip)
+        
+        # Superponer todos los clips de texto sobre el video original
+        if text_clips:
+            return CompositeVideoClip([clip] + text_clips)
+        else:
+            return clip
 
     def add_text_to_video(self, clip, text):
         # Add text overlay to the video clip
