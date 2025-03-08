@@ -222,16 +222,9 @@ class VideoCreation:
         return self.clip  # Return the processed video clip
 
     def create_final_clip(self):
-        # Create the final video clip with a background
-        self.background_clip = BackgroudVideo.get_clip(self.clip.duration)  # Get background video clip
-
-        _, background_height = self.background_clip.size  # Get the height of the background clip
-        target_dimensions = (FULL_RESOLUTION[0], FULL_RESOLUTION[1] - background_height)  # Calculate target dimensions
-        self.clip = VideoTools(self.clip).crop(target_dimensions[0], target_dimensions[1])  # Crop the main clip
-
-        # Combine the main clip and background clip
-        self.clip = clips_array([[self.clip], [self.background_clip]])
-        return self.clip  # Return the combined clip
+    # Simplemente devuelve el clip original sin fondo
+        print("Creating final clip...")
+        return self.clip
 
     def create_transcription(self, audio):
         # Generate transcription from the audio
@@ -247,8 +240,10 @@ class VideoCreation:
 
         # Load the audio file and transcribe it
         loaded_audio = whisper.load_audio(file_dir)
-        model = whisper.load_model(MODEL_NAME, device="cpu")
+        model = whisper.load_model(MODEL_NAME)
+        logging.info("Transcribing audio...")
         result = whisper.transcribe(model, loaded_audio, language=LANGUAGE, verbose=None)
+        logging.info("Transcription complete.")
 
         # Clean up the temporary audio file
         try:
@@ -357,14 +352,15 @@ class VideoCreation:
 
         image_clip = ImageClip(np.array(text_image), duration=clip.duration)  # Create an image clip for the text
 
-        y_offset = round(FULL_RESOLUTION[1] * (TEXT_POSITION_PERCENT / 100))  # Calculate vertical position for text
-        clip = CompositeVideoClip([clip, image_clip.set_position((0, y_offset,))])  # Overlay text on the video
+        # y_offset = round(FULL_RESOLUTION[1] * (TEXT_POSITION_PERCENT / 100))  # Calculate vertical position for text
+        y_offset = round(FULL_RESOLUTION[1] * 0.85)  # Calculate vertical position for text
+        clip = CompositeVideoClip([clip, image_clip.set_position(("center", y_offset,))])  # Overlay text on the video
 
         return clip  # Return the video clip with text
 
     def create_text_image(self, text, font_path, font_size, max_width):
         # Create an image with the specified text
-        image = Image.new("RGBA", (max_width, font_size * 10), (0, 0, 0, 0))  # Create a transparent image
+        image = Image.new("RGBA", (max_width, font_size * 3), (0, 0, 0, 0))  # Create a transparent image
 
         font = ImageFont.truetype(font_path, font_size)  # Load the specified font
 
@@ -551,9 +547,3 @@ if __name__ == '__main__':
     # Clean up temporary folders after processing is complete
     delete_temp_folder()
     logging.info('MAIN PROCESS COMPLETE')
-
-
-
-
-
-

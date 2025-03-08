@@ -1,5 +1,5 @@
 ## Model settings
-MODEL_NAME = 'whisper-small.en'
+MODEL_NAME = 'whisper-small'
 LANGUAGE = 'es'
 
 ## Processing settings
