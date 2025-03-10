@@ -16,3 +16,7 @@
 /venv
 /whisper-small.en
 /whisper-small
+/whisper-tiny
+/whisper-base
+/whisper-large
+/cache

@@ -1,10 +1,11 @@
 ## Model settings
-MODEL_NAME = 'whisper-small'
+MODEL_NAME = 'whisper-base'
 LANGUAGE = 'es'
 
 ## Processing settings
 MAX_NUMBER_OF_PROCESSES = 1 # The maximum number of videos which can be processed simultaneously
 NUM_THREADS = 12 # The number of threads used to save the editted video
+SEGMENT_DURATION= 120 # The duration of each segment in seconds
 
 ## Font settings
 FONT_NAME = 'Super Carnival.ttf' # The name of the font file used for captions
@@ -19,5 +20,9 @@ TEXT_POSITION_PERCENT = 30 # Position of caption text as a percentage of video h
 ## Source folders
 INPUT_VIDEOS_DIR = 'input_videos' # Directory of the input videos
 OUTPUT_VIDEOS_DIR = 'output_videos' # Directory the editted videos will be saved
+PROCESS_INPUT_VIDEOS_DIR = 'process_input_videos' # Directory of the input videos
+PROCESS_OUTPUT_VIDEOS_DIR = 'process_output_videos' # Directory the editted videos will be saved
 BACKGROUND_VIDEOS_DIR = 'BACKGROUND_VIDEOS' # Directory of the background videos
+CACHE_DIR = 'CACHE' # Directory to store the processed frames
+TEMP_DIR = 'TEMP' # Directory to store temporary files
 FONTS_DIR = 'FONTS' # Directory the fonts are stored in
