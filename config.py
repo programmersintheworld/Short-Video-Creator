@@ -4,8 +4,8 @@ LANGUAGE = 'es'
 
 ## Processing settings
 MAX_NUMBER_OF_PROCESSES = 1 # The maximum number of videos which can be processed simultaneously
-NUM_THREADS = 12 # The number of threads used to save the editted video
-SEGMENT_DURATION= 120 # The duration of each segment in seconds
+NUM_THREADS = 8 # The number of threads used to save the editted video
+SEGMENT_DURATION = 180  # The duration of each segment in seconds (5.1 minutes = 306 seconds, rounded to 310)
 
 ## Font settings
 FONT_NAME = 'Super Carnival.ttf' # The name of the font file used for captions

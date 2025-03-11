@@ -24,30 +24,13 @@ def split_video(input_path):
         yield segment_path  # Devuelve cada segmento a medida que se crea
         os.remove(segment_path)  # Elimina el segmento después de procesarlo
 
-def merge_videos(output_video_name):
-    """Une los segmentos procesados en output_videos en un solo archivo final usando moviepy."""
-    os.makedirs(PROCESS_OUTPUT_VIDEOS_DIR, exist_ok=True)
-    processed_segments = sorted([os.path.join(OUTPUT_VIDEOS_DIR, f) for f in os.listdir(OUTPUT_VIDEOS_DIR) if f.endswith(".mp4")])
-    
-    if not processed_segments:
-        logging.error("No hay archivos válidos para unir.")
-        return
-    
-    clips = [VideoFileClip(segment) for segment in processed_segments]
-    final_video = concatenate_videoclips(clips, method="compose")
-    final_output_path = os.path.join(PROCESS_OUTPUT_VIDEOS_DIR, output_video_name)
-    final_video.write_videofile(final_output_path, codec="libx264", audio_codec="aac")
-    logging.info(f"Video final guardado en {final_output_path}")
-
 def process_video(input_video):
     """Procesa cada segmento individualmente antes de generar el siguiente."""
     for segment in split_video(input_video):
         logging.info(f"Procesando segmento: {segment}")
         subprocess.run(["python", "main.py", segment])  # Procesa cada segmento antes de generar el siguiente
     
-    final_output_name = f"final_{os.path.basename(input_video)}"
-    merge_videos(final_output_name)
-    logging.info(f"Video final guardado en {PROCESS_OUTPUT_VIDEOS_DIR}/{final_output_name}")
+    logging.info("Video procesado con éxito.")
 
 if __name__ == "__main__":
     video_files = [f for f in os.listdir(PROCESS_INPUT_VIDEOS_DIR) if f.endswith(".mp4")]

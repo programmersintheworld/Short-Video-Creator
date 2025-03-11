@@ -1,5 +1,8 @@
 /temp
 /output_videos
+/input_videos
+/process_input_videos
+/process_output_videos
 /__pycache__
 /moviepy/__pycache__
 /moviepy/video/__pycache__

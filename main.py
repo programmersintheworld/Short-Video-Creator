@@ -64,21 +64,11 @@ class VideoTools:
         self.clip = clip
 
     def __del__(self) -> None:
-        """Destructor to clean up resources."""
         if self.clip:
             self.clip.close()  # Close the clip to free resources
             self.clip = None  # Set clip to None to avoid dangling reference
 
     def crop(self, width: int, height: int) -> VideoFileClip:
-        """Crop the video clip to the specified width and height.
-
-        Args:
-            width (int): The desired width of the cropped video.
-            height (int): The desired height of the cropped video.
-
-        Returns:
-            VideoFileClip: The cropped video clip.
-        """
         # Get the original dimensions of the video clip
         original_width, original_height = self.clip.size
 
@@ -119,21 +109,10 @@ class VideoTools:
 class Tools:
     @staticmethod
     def round_down(num: float, decimals: int = 0) -> float:
-        """
-        Rounds down a number to a specified number of decimal places.
-
-        :param num: The number to round down.
-        :param decimals: The number of decimal places to round to (default is 0).
-        :return: The rounded down number.
-        """
         return math.floor(num * 10 ** decimals) / 10 ** decimals
 
     @staticmethod
     def get_file_hash(filepath):
-        """
-        Generate a simple hash for a file based on its path, size, and modification time.
-        This is used for caching purposes.
-        """
         try:
             stats = os.stat(filepath)
             return f"{filepath}_{stats.st_size}_{stats.st_mtime}"
@@ -144,13 +123,6 @@ class Tools:
 class BackgroudVideo:
     @staticmethod
     def get_clip(duration: float) -> VideoFileClip:
-        """
-        Retrieves a random background video clip, trims it to the specified duration,
-        and crops it to the target resolution.
-
-        :param duration: The desired duration of the video clip.
-        :return: A cropped and trimmed VideoFileClip object.
-        """
         # Select a random clip from the background videos directory
         full_clip = VideoFileClip(BackgroudVideo.select_clip())
         
@@ -172,25 +144,12 @@ class BackgroudVideo:
     
     @staticmethod
     def select_clip() -> str:
-        """
-        Selects a random video clip from the background videos directory.
-
-        :return: The file path of the selected video clip.
-        """
         clips = os.listdir(BACKGROUND_VIDEOS_DIR)
         clip = random.choice(clips)
         return os.path.join(BACKGROUND_VIDEOS_DIR, clip)
     
     @staticmethod
     def trim_clip(clip: VideoFileClip, duration: float) -> VideoFileClip:
-        """
-        Trims a video clip to a specified duration.
-
-        :param clip: The VideoFileClip to trim.
-        :param duration: The desired duration of the trimmed clip.
-        :return: A trimmed VideoFileClip object.
-        :raises ValueError: If the clip's duration is less than the specified duration.
-        """
         if clip.duration < duration:
             raise ValueError(f"Clip duration {clip.duration} is less than duration {duration}")
         
@@ -200,12 +159,6 @@ class BackgroudVideo:
 
     @staticmethod
     def get_target_resolution():
-        """
-        Calculates the target resolution for the video clip based on the full resolution
-        and the percentage reduction for the main clip.
-
-        :return: A tuple containing the target width and height.
-        """
         return (
             FULL_RESOLUTION[0], 
             round(FULL_RESOLUTION[1] * (1 - (PERCENT_MAIN_CLIP / 100)))
@@ -213,12 +166,6 @@ class BackgroudVideo:
     
     @staticmethod
     def format_all_background_clips():
-        """
-        Formats all background video clips in the specified directory by cropping them
-        to the full resolution and saving them back to the directory.
-
-        :return: None
-        """
         clips = os.listdir(BACKGROUND_VIDEOS_DIR)
         for clip_name in clips:
             # Load each clip and crop it to the full resolution
@@ -257,15 +204,6 @@ class VideoCreation:
         self.clip = self.add_captions_to_video(self.clip, transcription)  # Add captions to the video
 
         return self.clip  # Return the processed video clip
-    
-    def split_video(self, segment_duration=30):
-        # Split the video into segments of the specified duration
-        segments = []
-        for i in range(0, math.ceil(self.clip.duration / segment_duration)):
-            end_time = min(start_time + segment_duration, self.clip.duration)
-            segment = self.clip.subclip(start_time, end_time)
-            segments.append(segment)
-        return segments
 
     def create_final_clip(self):
         # Just return the original clip without background
@@ -283,6 +221,7 @@ class VideoCreation:
         audio_duration = len(loaded_audio) / 16000  # Whisper usa 16kHz
         
         if audio_duration > 15 * 60:  # Si dura más de 15 minutos
+            # ! Esto puede fallar, no se ha probado
             logging.info(f"Audio largo detectado ({audio_duration:.2f}s), procesando en segmentos")
             
             all_timestamps = []
@@ -394,17 +333,6 @@ class VideoCreation:
         return timestamps  # Return the list of timestamps and words
 
     def add_captions_to_video(self, clip, timestamps):
-        """
-        Add subtitles to the video by overlaying text at specific times
-        without modifying the structure of the original video.
-        
-        Args:
-            clip: The original video clip
-            timestamps: List of dictionaries with 'timestamp' (start, end) and 'text'
-        
-        Returns:
-            A video clip with overlaid subtitles
-        """
         if not timestamps:
             return clip  # Return original clip if no timestamps
         
@@ -608,15 +536,6 @@ class VideoCreation:
             return image.crop((0, 0, max_width, round(h * 1.6)))  # Crop to fit the single line
 
 def start_process(file_name, processes_status_dict, video_queue: multiprocessing.Queue):
-    """
-    Process a video file by applying transformations and saving the output.
-
-    Args:
-        file_name (str): The name of the video file to process.
-        processes_status_dict (dict): A dictionary to track the status of processes.
-        video_queue (multiprocessing.Queue): A queue to manage video processing tasks.
-    """
-    
     logging.info(f"Processing: {file_name}")  # Log the start of processing
     start_time = time.time()  # Record the start time
 
@@ -640,23 +559,10 @@ def start_process(file_name, processes_status_dict, video_queue: multiprocessing
         video_duration = float(probe_result.stdout.strip())
         
         # Apply different optimizations based on video length
-        clip_params = {}
-        if video_duration > 600:  # > 10 minutes
-            clip_params = {
-                'target_resolution': (854, 480),  # 480p for long videos
-                'fps_target': 24
-            }
-        elif video_duration > 300:  # > 5 minutes
-            clip_params = {
-                'target_resolution': (1280, 720),  # 720p for medium videos
-                'fps_target': 30
-            }
-        else:
-            clip_params = {
-                'target_resolution': None,  # Original resolution for short videos
-                'fps_target': None  # Original FPS
-            }
-            
+        clip_params = {
+            'target_resolution': None,
+            'fps_target': None
+        }
         logging.info(f"Video duration: {video_duration:.2f}s - Using optimized settings: {clip_params}")
     except Exception as e:
         logging.warning(f"Could not determine video duration: {e}")
